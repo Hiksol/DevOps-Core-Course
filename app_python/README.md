@@ -73,3 +73,30 @@ The application supports environment variables for runtime configuration:
 | `HOST` | `0.0.0.0` | Address the server binds to |
 | `PORT` | `5000` | Port the service listens on |
 | `DEBUG` | `False` | Enables debug mode when set to `true` |
+
+---
+
+## Docker
+
+### Pull from Docker Hub
+```bash
+docker pull hiksol/devops-info-service:lab02
+```
+
+### Build the image
+
+```bash
+docker build -t hiksol/devops-info-service:lab02 .
+```
+
+### Run the container
+```bash
+docker run -p 5000:5000 hiksol/devops-info-service:lab02
+```
+
+The application will be available at:
+
+```
+http://localhost:5000/
+http://localhost:5000/health
+```

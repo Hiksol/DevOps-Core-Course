@@ -1,3 +1,5 @@
+![Python CI](https://github.com/hiksol/DevOps-Core-Course/actions/workflows/python-ci.yml/badge.svg)
+
 ## **Overview**
 The **DevOps Info Service** is a lightweight web application that provides detailed information about the system, runtime environment, and service metadata.  
 It exposes two API endpoints used throughout the DevOps course for monitoring, containerization, CI/CD, and Kubernetes health checks.
@@ -99,4 +101,10 @@ The application will be available at:
 ```
 http://localhost:5000/
 http://localhost:5000/health
+```
+
+---
+## Running tests
+```bash
+pytest
 ```

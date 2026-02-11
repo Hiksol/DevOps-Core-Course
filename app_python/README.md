@@ -106,7 +106,6 @@ http://localhost:5000/health
 ---
 
 ## Running tests
-
 ```bash
 pytest
 ```

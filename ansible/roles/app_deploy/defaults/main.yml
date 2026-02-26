@@ -1,0 +1,3 @@
+---
+app_port: 5000
+docker_image_tag: latest

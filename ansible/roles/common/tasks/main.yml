@@ -1,10 +1,40 @@
 ---
-- name: Update apt cache
-  apt:
-    update_cache: yes
-    cache_valid_time: 3600
-
+# PACKAGES BLOCK
 - name: Install common packages
-  apt:
-    name: "{{ common_packages }}"
-    state: present
+  block:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install packages
+      apt:
+        name: "{{ common_packages }}"
+        state: present
+
+  rescue:
+    - name: Retry apt update with fix-missing
+      command: apt-get update --fix-missing
+
+  always:
+    - name: Log completion
+      file:
+        path: /tmp/common_role_done
+        state: touch
+
+  become: true
+  tags:
+    - packages
+
+# USERS BLOCK
+- name: Create users
+  block:
+    - name: Create user accounts
+      user:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ common_users }}"
+
+  become: true
+  tags:
+    - users
+

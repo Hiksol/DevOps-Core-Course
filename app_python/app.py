@@ -8,17 +8,41 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 # ---------------------------------------------------------
-# Logging configuration
+# Logging configuration (JSON + text)
 # ---------------------------------------------------------
+from pythonjsonlogger import jsonlogger
+
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 
-logging.basicConfig(
-    level=LOG_LEVEL,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
-
 logger = logging.getLogger("devops-info-service")
+logger.setLevel(LOG_LEVEL)
+
+for handler in logger.handlers[:]:
+    logger.removeHandler(handler)
+
+# -----------------------------
+# JSON handler (Loki)
+# -----------------------------
+json_handler = logging.StreamHandler()
+json_formatter = jsonlogger.JsonFormatter(
+    '%(asctime)s %(levelname)s %(message)s %(pathname)s %(lineno)d %(name)s'
+)
+json_handler.setFormatter(json_formatter)
+
+# -----------------------------
+# Text handler (docker logs)
+# -----------------------------
+text_handler = logging.StreamHandler()
+text_formatter = logging.Formatter(
+    "%(asctime)s - %(levelname)s - %(message)s"
+)
+text_handler.setFormatter(text_formatter)
+
+logger.addHandler(json_handler)
+logger.addHandler(text_handler)
+
 logger.info("Starting DevOps Info Service...")
+
 
 # ---------------------------------------------------------
 # FastAPI app initialization

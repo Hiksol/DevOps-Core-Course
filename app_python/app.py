@@ -4,8 +4,30 @@ import platform
 import psutil
 import logging
 from datetime import datetime, timezone
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
+from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
+import time
+
+# -----------------------------
+# Prometheus metrics
+# -----------------------------
+http_requests_total = Counter(
+    'http_requests_total',
+    'Total HTTP requests',
+    ['method', 'endpoint', 'status']
+)
+
+http_request_duration = Histogram(
+    'http_request_duration_seconds',
+    'HTTP request duration',
+    ['method', 'endpoint']
+)
+
+http_requests_in_progress = Gauge(
+    'http_requests_in_progress',
+    'Active HTTP requests'
+)
 
 # ---------------------------------------------------------
 # Logging configuration (JSON + text)
@@ -162,6 +184,37 @@ async def health():
         "uptime_seconds": uptime["seconds"]
     }
 
+@app.middleware("http")
+async def metrics_middleware(request: Request, call_next):
+    start_time = time.time()
+    http_requests_in_progress.inc()
+
+    response = await call_next(request)
+
+    duration = time.time() - start_time
+
+    http_requests_total.labels(
+        method=request.method,
+        endpoint=request.url.path,
+        status=str(response.status_code)
+    ).inc()
+
+    http_request_duration.labels(
+        method=request.method,
+        endpoint=request.url.path
+    ).observe(duration)
+
+    http_requests_in_progress.dec()
+
+    return response
+
+@app.get("/metrics")
+def metrics():
+    return Response(
+        content=generate_latest(),
+        media_type=CONTENT_TYPE_LATEST
+    )
+
 # ---------------------------------------------------------
 # Application entrypoint
 # ---------------------------------------------------------
@@ -174,7 +227,7 @@ if __name__ == "__main__":
     logger.info(f"Running on {HOST}:{PORT} (debug={DEBUG})")
 
     uvicorn.run(
-        "app:app",
+        app,
         host=HOST,
         port=PORT,
         reload=DEBUG

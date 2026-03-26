@@ -3,10 +3,12 @@ import socket
 import platform
 import psutil
 import logging
+import uvicorn
 from datetime import datetime, timezone
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
 from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
+from pythonjsonlogger import jsonlogger
 import time
 
 # -----------------------------
@@ -32,7 +34,6 @@ http_requests_in_progress = Gauge(
 # ---------------------------------------------------------
 # Logging configuration (JSON + text)
 # ---------------------------------------------------------
-from pythonjsonlogger import jsonlogger
 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 
@@ -219,8 +220,6 @@ def metrics():
 # Application entrypoint
 # ---------------------------------------------------------
 if __name__ == "__main__":
-    import uvicorn
-
     HOST = os.getenv("HOST", "0.0.0.0")
     PORT = int(os.getenv("PORT", 5000))
 

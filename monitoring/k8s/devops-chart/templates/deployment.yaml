@@ -4,6 +4,8 @@ metadata:
   name: devops-info-deployment
   labels:
     app: devops-info
+
+
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -11,6 +13,10 @@ spec:
       app: devops-info
   template:
     metadata:
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "myapp-role"
+        vault.hashicorp.com/agent-inject-secret-config: "secret/data/myapp/config"
       labels:
         app: devops-info
     spec:
@@ -35,11 +41,23 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 5
 
+
+          volumeMounts:
+            - name: app-secret
+              mountPath: "/etc/app-secret"
+              readOnly: true
+
           readinessProbe:
             httpGet:
               path: /health
               port: 5000
             initialDelaySeconds: 5
             periodSeconds: 3
+
+      volumes:
+        - name: app-secret
+          secret:
+            secretName: {{ .Release.Name }}-secret
+
 
       restartPolicy: Always

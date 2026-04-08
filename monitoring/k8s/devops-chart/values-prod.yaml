@@ -1,15 +1,4 @@
-replicaCount: 1
-
-image:
-  tag: latest
-
-resources:
-  limits:
-    cpu: 100m
-    memory: 128Mi
-  requests:
-    cpu: 50m
-    memory: 64Mi
+replicaCount: 5
 
 service:
-  type: NodePort
+  type: LoadBalancer

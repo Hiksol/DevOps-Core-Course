@@ -71,6 +71,16 @@ services:
     mem_limit: 256m
     cpus: 0.5
 
+    environment:
+      - HOST=0.0.0.0
+      - PORT=5000
+      - DATA_DIR=/data
+      - VISITS_FILE=/data/visits
+      - APP_CONFIG_FILE=/config/config.json
+      - APP_NAME=devops-info-service
+      - APP_ENV=dev
+      - LOG_LEVEL=INFO
+
     healthcheck:
       test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:5000/health')\" || exit 1"]
       interval: 10s
@@ -79,6 +89,9 @@ services:
 
     ports:
       - "5000:5000"
+    volumes:
+      - ./data:/data
+      - ./config:/config:ro
     networks:
       - logging
     labels:

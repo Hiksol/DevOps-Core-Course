@@ -4,8 +4,6 @@ metadata:
   name: devops-info-deployment
   labels:
     app: devops-info
-
-
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -14,9 +12,7 @@ spec:
   template:
     metadata:
       annotations:
-        vault.hashicorp.com/agent-inject: "true"
-        vault.hashicorp.com/role: "myapp-role"
-        vault.hashicorp.com/agent-inject-secret-config: "secret/data/myapp/config"
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
       labels:
         app: devops-info
     spec:
@@ -25,6 +21,21 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           ports:
             - containerPort: 5000
+              name: http
+
+          envFrom:
+            - configMapRef:
+                name: devops-info-env
+
+          volumeMounts:
+            - name: app-config
+              mountPath: /config
+              readOnly: true
+            - name: app-data
+              mountPath: /data
+            - name: app-secret
+              mountPath: "/etc/app-secret"
+              readOnly: true
 
           resources:
             requests:
@@ -41,12 +52,6 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 5
 
-
-          volumeMounts:
-            - name: app-secret
-              mountPath: "/etc/app-secret"
-              readOnly: true
-
           readinessProbe:
             httpGet:
               path: /health
@@ -55,9 +60,14 @@ spec:
             periodSeconds: 3
 
       volumes:
+        - name: app-config
+          configMap:
+            name: devops-info-config
+        - name: app-data
+          persistentVolumeClaim:
+            claimName: devops-info-data
         - name: app-secret
           secret:
             secretName: {{ .Release.Name }}-secret
-
 
       restartPolicy: Always
